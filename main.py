@@ -37,48 +37,40 @@ client = discord.Client(intents=intents)
 
 @client.event
 async def on_message(message):
-    # Regra 1: Ignora se for mensagem de outro bot
-    # Regra 2: Só lê se for no canal geral que você configurou
-    if message.author.bot or message.channel.id != ID_CANAL_GERAL:
+    # Ignora mensagens do próprio bot
+    if message.author == client.user:
+        return
+
+    # --- COMANDO DE TESTE DIRETO ---
+    if message.content.startswith('!testestaff'):
+        await message.channel.send(f'✅ Oi {message.author.name}! Eu estou lendo este canal e consigo responder!')
+        return
+    # ------------------------------
+
+    # Regra original do Canal Geral
+    if message.channel.id != ID_CANAL_GERAL:
         return
 
     try:
-        # O Groq processa a mensagem do jogador de forma ultra rápida
+        # (O resto do seu código da IA Groq continua igual aqui...)
         chat_completion = ia.chat.completions.create(
             messages=[
                 {
                     "role": "system",
-                    "content": (
-                        "Você é um assistente de Staff de um servidor de GTA RP chamado Raze. "
-                        "Gere 3 opções de resposta curtas e limpas baseadas na mensagem do jogador. "
-                        "Todas as opções DEVEM começar com 'Nós da Staff...'. "
-                        "Opção 1: Educada/Prestativa. "
-                        "Opção 2: Informativa/Regra. "
-                        "Opção 3: Firme/Autoridade (para casos de desrespeito ou chatice)."
-                    )
+                    "content": "Você é um assistente de Staff de GTA RP. Gere 3 opções de resposta curtas. Use sempre 'Nós da Staff...'. Opção 1: Educada. Opção 2: Regra. Opção 3: Firme."
                 },
-                {
-                    "role": "user",
-                    "content": f"Jogador {message.author.name} enviou: {message.content}",
-                }
+                {"role": "user", "content": f"Player {message.author.name}: {message.content}"}
             ],
-            model="llama3-8b-8192", # Modelo gratuito e veloz
+            model="llama3-8b-8192",
         )
 
         sugestoes = chat_completion.choices.message.content
         canal_staff = client.get_channel(ID_CANAL_STAFF)
         
-        # Monta o Log bonitão no canal de Staff
-        embed = discord.Embed(title="🚨 NOVA MENSAGEM DETECTADA", color=0xff0000)
-        embed.add_field(name="Player", value=message.author.name, inline=True)
-        embed.add_field(name="Mensagem Original", value=message.content, inline=False)
-        embed.add_field(name="Sugestões de Resposta", value=sugestoes, inline=False)
-        embed.set_footer(text="Copie e cole a melhor opção no chat geral.")
-
-        await canal_staff.send(embed=embed)
+        await canal_staff.send(f"**🚨 SUGESTÕES PARA: {message.author.name}**\n\n{sugestoes}")
 
     except Exception as e:
-        print(f"Erro ao processar mensagem: {e}")
+        print(f"Erro ao processar: {e}")
 
 # Inicia o servidor Web e o Bot juntos
 keep_alive()
