@@ -50,16 +50,19 @@ async def on_message(message):
     # Se a mensagem for no Geral, processa a IA
     if message.channel.id == ID_CANAL_GERAL:
         try:
-            chat_completion = ia.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": "Você é Staff de GTA RP. Gere 3 opções curtas com 'Nós da Staff...'."},
-                    {"role": "user", "content": f"Player {message.author.name}: {message.content}"}
-                ],
-                model="llama-3.3-70b-versatile",
-            )
-            
-            sugestoes = chat_completion.choices.message.content
-            canal_staff = client.get_channel(ID_CANAL_STAFF)
+        chat_completion = ia.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "Você é Staff de GTA RP. Gere 3 opções curtas com 'Nós da Staff...'."},
+                {"role": "user", "content": f"Player {message.author.name}: {message.content}"}
+            ],
+            model="llama-3.3-70b-versatile",
+        )
+        
+        # --- A CORREÇÃO ESTÁ NESTA LINHA ABAIXO ---
+        sugestoes = chat_completion.choices[0].message.content
+        # ------------------------------------------
+
+        canal_staff = client.get_channel(ID_CANAL_STAFF)
             
             embed = discord.Embed(title="🚨 NOVA MENSAGEM NO GERAL", color=0x2f3136)
             embed.add_field(name="Autor", value=message.author.mention, inline=True)
