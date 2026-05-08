@@ -51,14 +51,23 @@ async def on_message(message):
     if message.channel.id == ID_CANAL_GERAL:
         try:
             # Chama a IA Groq
-            chat_completion = ia.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": "Você é Staff de GTA RP. Gere 3 opções curtas com 'Nós da Staff...'."},
-                    {"role": "user", "content": f"Player {message.author.name}: {message.content}"}
-                ],
-                model="llama-3.3-70b-versatile",
-            )
-            
+        chat_completion = ia.chat.completions.create(
+            messages=[
+                {
+                    "role": "system", 
+                    "content": (
+                        "Você é a equipe de suporte do servidor de GTA RP Raze. "
+                        "Gere 3 opções de respostas curtas, naturais e sem usar frases repetitivas como 'Nós da Staff'. "
+                        "Fale de forma profissional mas direta. "
+                        "Opção 1 (Suporte): Educada, ajuda o player e foca em resolver o problema. "
+                        "Opção 2 (Informativa): Explica a regra ou o procedimento de forma neutra. "
+                        "Opção 3 (Firme): Para casos de má conduta, use autoridade, avise sobre punições se necessário e encerre o assunto."
+                    )
+                },
+                {"role": "user", "content": f"Player {message.author.name} enviou: {message.content}"}
+            ],
+            model="llama-3.3-70b-versatile",
+        )
             # --- CORREÇÃO DO ERRO 'LIST' ---
             # Pegamos o conteúdo da mensagem corretamente agora
             sugestoes = chat_completion.choices[0].message.content
