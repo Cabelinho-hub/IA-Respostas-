@@ -32,6 +32,7 @@ ID_CANAL_STAFF = int(os.getenv('ID_CANAL_STAFF'))
 ia = Groq(api_key=CHAVE_GROQ)
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 client = discord.Client(intents=intents)
 
 @client.event
