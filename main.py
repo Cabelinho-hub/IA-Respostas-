@@ -24,6 +24,7 @@ CHAVE_GROQ = os.getenv('GROQ_API_KEY')
 ID_CANAL_GERAL = int(os.getenv('ID_CANAL_GERAL'))
 ID_CANAL_STAFF = int(os.getenv('ID_CANAL_STAFF'))
 ID_CANAL_SISTEMA = int(os.getenv('ID_CANAL_SISTEMA'))
+ID_CARGO_STAFF = int(os.getenv('ID_CARGO_STAFF')) # Nova variável de cargo
 
 ia = Groq(api_key=CHAVE_GROQ)
 intents = discord.Intents.default()
@@ -42,36 +43,55 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user: return
 
-    # Comando de Teste
+    # --- COMANDO DE PERGUNTA DIRETA (!ia) COM TRAVA DE CARGO ---
+    if message.content.startswith('!ia '):
+        # Verifica se o autor tem o cargo de Staff
+        tem_cargo = any(role.id == ID_CARGO_STAFF for role in message.author.roles)
+
+        if not tem_cargo:
+            await message.reply("❌ Você não tem permissão para usar a consultoria da IA.")
+            return
+
+        pergunta = message.content[4:] 
+        async with message.channel.typing():
+            try:
+                res = ia.chat.completions.create(
+                    messages=[
+                        {"role": "system", "content": "Você é um consultor especializado para a Staff do servidor Raze. Responda de forma clara e direta."},
+                        {"role": "user", "content": pergunta}
+                    ],
+                    model="llama-3.3-70b-versatile",
+                )
+                resposta_direta = res.choices[0].message.content
+                await message.reply(resposta_direta)
+            except Exception as e:
+                print(f"Erro no !ia: {e}")
+        return
+
+    # Comando de Teste Simples
     if message.content.startswith('!testestaff'):
         await message.channel.send(f'✅ Oi {message.author.name}, estou lendo este canal!')
         return
 
-    # Processa apenas no canal Geral
+    # Processa Sugestões Automáticas (Canal Geral)
     if message.channel.id == ID_CANAL_GERAL:
         try:
-            # Chama a IA Groq
-        chat_completion = ia.chat.completions.create(
-            messages=[
-                {
-                    "role": "system", 
-                    "content": (
-                        "Você é a equipe de suporte do servidor de GTA RP Raze. "
-                        "Gere 3 opções de respostas curtas, naturais e sem usar frases repetitivas como 'Nós da Staff'. "
-                        "Fale de forma profissional mas direta. "
-                        "Opção 1 (Suporte): Educada, ajuda o player e foca em resolver o problema. "
-                        "Opção 2 (Informativa): Explica a regra ou o procedimento de forma neutra. "
-                        "Opção 3 (Firme): Para casos de má conduta, use autoridade, avise sobre punições se necessário e encerre o assunto."
-                    )
-                },
-                {"role": "user", "content": f"Player {message.author.name} enviou: {message.content}"}
-            ],
-            model="llama-3.3-70b-versatile",
-        )
-            # --- CORREÇÃO DO ERRO 'LIST' ---
-            # Pegamos o conteúdo da mensagem corretamente agora
-            sugestoes = chat_completion.choices[0].message.content
+            chat_completion = ia.chat.completions.create(
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": (
+                            "Você é a equipe de suporte do servidor de GTA RP Raze. "
+                            "Gere 3 opções de respostas curtas, naturais e diretas. "
+                            "Não use frases repetitivas. Opção 1: Suporte. Opção 2: Regra. Opção 3: Firme."
+                        )
+                    },
+                    {"role": "user", "content": f"Player {message.author.name} enviou: {message.content}"}
+                ],
+                model="llama-3.3-70b-versatile",
+            )
             
+            sugestoes = chat_completion.choices[0].message.content
             canal_staff = client.get_channel(ID_CANAL_STAFF)
             
             embed = discord.Embed(title="🚨 NOVA MENSAGEM NO GERAL", color=0x2f3136)
