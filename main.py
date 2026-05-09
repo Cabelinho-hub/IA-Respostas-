@@ -81,10 +81,11 @@ async def on_message(message):
                     {
                         "role": "system", 
                         "content": (
-                            "Você é a equipe de suporte do servidor de GTA RP Raze. "
-                            "Gere 3 opções de respostas curtas, naturais e diretas. "
-                            "Não use frases repetitivas. Opção 1: Suporte. Opção 2: Regra. Opção 3: Firme."
-                        )
+                            "Você é um suporte do servidor de GTA RP Raze. "
+                            "Gere 3 opções de respostas pra uma dúvida,pra um xingamento, pra uma mensgaem direta. "
+                            "Sempre dê formas de resposta com conduta autoridade e respeito"
+                            "Aqui é basicamente uma 'empresa' então cada players é um 'cliente'"
+                         )
                     },
                     {"role": "user", "content": f"Player {message.author.name} enviou: {message.content}"}
                 ],
